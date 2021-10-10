@@ -93,6 +93,7 @@ typedef enum
 -(void) rightMouseDragged:(NSEvent *) theEvent;
 -(void) otherMouseDragged:(NSEvent *) theEvent;
 -(void) scrollWheel:(NSEvent *) theEvent;
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
 -(void) touchesBeganWithEvent:(NSEvent *) theEvent;
 -(void) touchesMovedWithEvent:(NSEvent *) theEvent;
 -(void) touchesEndedWithEvent:(NSEvent *) theEvent;
@@ -106,6 +107,7 @@ typedef enum {
     COCOA_TOUCH_CANCELLED
 } cocoaTouchType;
 -(void) handleTouches:(cocoaTouchType)type withEvent:(NSEvent*) event;
+#endif
 
 @end
 /* *INDENT-ON* */

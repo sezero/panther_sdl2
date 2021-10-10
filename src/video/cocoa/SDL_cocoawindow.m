@@ -829,6 +829,7 @@ SetWindowStyle(SDL_Window * window, unsigned int style)
     Cocoa_HandleMouseWheel(_data->window, theEvent);
 }
 
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
 - (void)touchesBeganWithEvent:(NSEvent *) theEvent
 {
     [self handleTouches:COCOA_TOUCH_DOWN withEvent:theEvent];
@@ -849,7 +850,6 @@ SetWindowStyle(SDL_Window * window, unsigned int style)
     [self handleTouches:COCOA_TOUCH_CANCELLED withEvent:theEvent];
 }
 
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
 - (void)handleTouches:(cocoaTouchType)type withEvent:(NSEvent *)event
 {
     NSSet *touches = 0;
