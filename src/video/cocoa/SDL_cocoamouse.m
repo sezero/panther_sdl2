@@ -150,9 +150,11 @@ Cocoa_CreateSystemCursor(SDL_SystemCursor id)
     case SDL_SYSTEM_CURSOR_SIZEALL:
         nscursor = [NSCursor closedHandCursor];
         break;
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1050
     case SDL_SYSTEM_CURSOR_NO:
         nscursor = [NSCursor operationNotAllowedCursor];
         break;
+#endif
     case SDL_SYSTEM_CURSOR_HAND:
         nscursor = [NSCursor pointingHandCursor];
         break;
