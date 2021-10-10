@@ -33,12 +33,9 @@ GetTextFormat(_THIS)
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
     if (data->osversion >= 0x1060) {
         return NSPasteboardTypeString;
-    } else {
-#endif
-        return NSStringPboardType;
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
     }
 #endif
+    return NSStringPboardType;
 }
 
 int

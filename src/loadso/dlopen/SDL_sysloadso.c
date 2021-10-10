@@ -33,12 +33,8 @@
 void *
 SDL_LoadObject(const char *sofile)
 {
-#if defined(__MACOSX__)
-#if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_4 /* The Mac OS X 10.3.9 dlcompat does not accept RTLD_LOCAL */
-    void *handle = dlopen(sofile, RTLD_NOW|RTLD_GLOBAL); 
-#else
-    void *handle = dlopen(sofile, RTLD_NOW|RTLD_LOCAL);
-#endif
+#if defined(__MACOSX__) && (MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_4) /* The Mac OS X 10.3 dlcompat does not accept RTLD_LOCAL */
+    void *handle = dlopen(sofile, RTLD_NOW|RTLD_GLOBAL);
 #else
     void *handle = dlopen(sofile, RTLD_NOW|RTLD_LOCAL);
 #endif

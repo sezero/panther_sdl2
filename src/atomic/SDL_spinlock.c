@@ -19,6 +19,7 @@
   3. This notice may not be removed or altered from any source distribution.
 */
 #include "../SDL_internal.h"
+
 #if defined(__WIN32__) || defined(__WINRT__)
 #include "../core/windows/SDL_windows.h"
 #endif
@@ -27,11 +28,12 @@
 #include "SDL_mutex.h"
 #include "SDL_timer.h"
 
+
 /* This function is where all the magic happens... */
 SDL_bool
 SDL_AtomicTryLock(SDL_SpinLock *lock)
 {
-#if SDL_ATOMIC_DISABLED || MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_4
+#if SDL_ATOMIC_DISABLED || (defined(__MACOSX__) && (MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_4))
     /* Terrible terrible damage */
     static SDL_mutex *_spinlock_mutex;
 
@@ -80,7 +82,7 @@ SDL_AtomicTryLock(SDL_SpinLock *lock)
         : "=r" (result) : "r" (lock), "0" (1) : "cc", "memory");
     return (result == 0);
 
-#elif MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_4 || defined(__IPHONEOS__)
+#elif (defined(__MACOSX__) && (MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_4)) || defined(__IPHONEOS__)
     /* Maybe used for PowerPC, but the Intel asm or gcc atomics are favored. */
     return OSAtomicCompareAndSwap32Barrier(0, 1, lock);
 	

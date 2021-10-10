@@ -367,8 +367,8 @@ prepare_audiounit(_THIS, const char *devname, int iscapture,
     ComponentDescription desc;
     Component comp = NULL;
 #else
-   AudioComponentDescription desc;
-   AudioComponent comp = NULL;
+    AudioComponentDescription desc;
+    AudioComponent comp = NULL;
 #endif
     const AudioUnitElement output_bus = 0;
     const AudioUnitElement input_bus = 1;
@@ -392,8 +392,8 @@ prepare_audiounit(_THIS, const char *devname, int iscapture,
     desc.componentSubType = kAudioUnitSubType_DefaultOutput;
     comp = FindNextComponent(NULL, &desc);
 #else
-   desc.componentSubType = kAudioUnitSubType_RemoteIO;
-   comp = AudioComponentFindNext(NULL, &desc);
+    desc.componentSubType = kAudioUnitSubType_RemoteIO;
+    comp = AudioComponentFindNext(NULL, &desc);
 #endif
 
     if (comp == NULL) {

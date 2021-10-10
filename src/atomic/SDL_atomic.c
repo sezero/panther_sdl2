@@ -27,10 +27,12 @@
 #define HAVE_MSC_ATOMICS 1
 #endif
 
+#if defined(__MACOSX__)  /* !!! FIXME: should we favor gcc atomics? */
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_4 /* OSAtomic is not available on Mac OS X 10.3.9 */
-	#include <libkern/OSAtomic.h>
+#include <libkern/OSAtomic.h>
 #else
-	#define EMULATE_CAS 1
+#define EMULATE_CAS 1
+#endif
 #endif
 
 /*
@@ -86,7 +88,7 @@ SDL_AtomicCAS(SDL_atomic_t *a, int oldval, int newval)
 {
 #ifdef HAVE_MSC_ATOMICS
     return (_InterlockedCompareExchange((long*)&a->value, (long)newval, (long)oldval) == (long)oldval);
-#elif defined(__MACOSX__)  && !defined(EMULATE_CAS) /* Check if EMULATE_CAS is set for Mac OS X 10.3.9 compat */
+#elif defined(__MACOSX__) && !defined(EMULATE_CAS) /* Check if EMULATE_CAS is set for Mac OS X 10.3.9 compat */
     return (SDL_bool) OSAtomicCompareAndSwap32Barrier(oldval, newval, &a->value);
 #elif defined(HAVE_GCC_ATOMICS)
     return (SDL_bool) __sync_bool_compare_and_swap(&a->value, oldval, newval);
