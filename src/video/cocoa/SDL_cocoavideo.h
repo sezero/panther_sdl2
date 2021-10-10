@@ -45,9 +45,24 @@
 #include "SDL_cocoaopengl.h"
 #include "SDL_cocoawindow.h"
 
-#if !defined(MAC_OS_X_VERSION_10_5)
+#if !defined(MAC_OS_X_VERSION_10_6) && !defined(NSINTEGER_DEFINED)
+/* This is for compatibility with 10.4 and older Mac OS X SDKs.  Otherwise,
+ * conflicting type errors for  -(long int)conversationIdentifier  and
+ * -(unsigned int)characterIndexForPoint:(NSPoint)thePoint  will happen. */
 typedef long int NSInteger;
 typedef unsigned int NSUInteger;
+#ifdef __LP64__
+#error Bad SDK for __LP64__ build
+#endif
+/*
+#if __LP64__ || NS_BUILD_32_LIKE_64
+typedef long NSInteger;
+typedef unsigned long NSUInteger;
+#else
+typedef int NSInteger;
+typedef unsigned int NSUInteger;
+#endif
+*/
 #endif
 
 /* Private display data */
