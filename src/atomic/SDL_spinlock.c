@@ -20,6 +20,10 @@
 */
 #include "../SDL_internal.h"
 
+#if defined(__MACOSX__) && (MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_4)
+#include <libkern/OSAtomic.h>
+#endif
+
 #if defined(__WIN32__) || defined(__WINRT__)
 #include "../core/windows/SDL_windows.h"
 #endif
