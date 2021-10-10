@@ -25,8 +25,11 @@
 
 #include "SDL_cocoavideo.h"
 
-#if !defined(MAC_OS_X_VERSION_10_5)
+#if !defined(CGFLOAT_DEFINED)
 typedef float CGFloat;
+#ifdef __LP64__
+#error Bad SDK for __LP64__ build
+#endif
 #endif
 
 extern void Cocoa_InitMouse(_THIS);
