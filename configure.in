@@ -142,7 +142,7 @@ find_lib()
     else
         host_lib_path="/usr/$base_libdir /usr/local/$base_libdir"
     fi
-    for path in $gcc_bin_path $gcc_lib_path $env_lib_path $host_lib_path; do
+    for path in $env_lib_path $gcc_bin_path $gcc_lib_path $host_lib_path; do
         lib=[`ls -- $path/$1 2>/dev/null | sed -e '/\.so\..*\./d' -e 's,.*/,,' | sort | tail -1`]
         if test x$lib != x; then
             echo $lib
@@ -2218,7 +2218,6 @@ AC_HELP_STRING([--enable-pthread-sem], [use pthread semaphores [[default=yes]]])
             EXTRA_CFLAGS="$EXTRA_CFLAGS $pthread_cflags"
             EXTRA_LDFLAGS="$EXTRA_LDFLAGS $pthread_lib"
             SDL_CFLAGS="$SDL_CFLAGS $pthread_cflags"
-            SDL_LIBS="$SDL_LIBS $pthread_lib"
 
             # Save the original compiler flags and libraries
             ac_save_cflags="$CFLAGS"; ac_save_libs="$LIBS"
@@ -2229,7 +2228,8 @@ AC_HELP_STRING([--enable-pthread-sem], [use pthread semaphores [[default=yes]]])
             AC_MSG_CHECKING(for recursive mutexes)
             has_recursive_mutexes=no
             if test x$has_recursive_mutexes = xno; then
-                AC_TRY_COMPILE([
+                AC_TRY_LINK([
+                  #define _GNU_SOURCE 1
                   #include <pthread.h>
                 ],[
                   pthread_mutexattr_t attr;
@@ -2240,7 +2240,8 @@ AC_HELP_STRING([--enable-pthread-sem], [use pthread semaphores [[default=yes]]])
                 ])
             fi
             if test x$has_recursive_mutexes = xno; then
-                AC_TRY_COMPILE([
+                AC_TRY_LINK([
+                  #define _GNU_SOURCE 1
                   #include <pthread.h>
                 ],[
                   pthread_mutexattr_t attr;
@@ -2672,8 +2673,12 @@ case "$host" in
         CheckOpenGLESX11
         CheckLibUDev
         CheckDBus
-        CheckInputEvents
-        CheckInputKD
+        case $ARCH in
+          linux)
+              CheckInputEvents
+              CheckInputKD
+          ;;
+        esac
         CheckTslib
         CheckUSBHID
         CheckPTHREAD
@@ -2949,6 +2954,7 @@ AC_HELP_STRING([--enable-render-d3d], [enable the Direct3D render driver [[defau
         # Set up files for the audio library
         if test x$enable_audio = xyes; then
             SOURCES="$SOURCES $srcdir/src/audio/coreaudio/*.c"
+            SUMMARY_audio="${SUMMARY_audio} coreaudio"
             have_audio=yes
         fi
         # Set up files for the joystick library
@@ -3018,6 +3024,7 @@ AC_HELP_STRING([--enable-render-d3d], [enable the Direct3D render driver [[defau
         if test x$enable_audio = xyes; then
             AC_DEFINE(SDL_AUDIO_DRIVER_COREAUDIO, 1, [ ])
             SOURCES="$SOURCES $srcdir/src/audio/coreaudio/*.c"
+            SUMMARY_audio="${SUMMARY_audio} coreaudio"
             have_audio=yes
         fi
         # Set up files for the joystick library

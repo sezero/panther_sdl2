@@ -1847,8 +1847,8 @@ fi
 
 # ac_fn_c_try_run LINENO
 # ----------------------
-# Try to link conftest.$ac_ext, and return whether this succeeded. Assumes
-# that executables *can* be run.
+# Try to run conftest.$ac_ext, and return whether this succeeded. Assumes that
+# executables *can* be run.
 ac_fn_c_try_run ()
 {
   as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
@@ -2383,6 +2383,8 @@ done
 # WARNING: Use '\'' to represent an apostrophe within the trap.
 # WARNING: Do not start the trap code with a newline, due to a FreeBSD 4.0 bug.
 trap 'exit_status=$?
+  # Sanitize IFS.
+  IFS=" ""	$as_nl"
   # Save into config.log some information that might help in debugging.
   {
     echo
@@ -3335,7 +3337,9 @@ ac_clean_files="$ac_clean_files conftest.out"
 # the compiler is broken, or we cross compile.
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether we are cross compiling" >&5
 $as_echo_n "checking whether we are cross compiling... " >&6; }
-if test "$cross_compiling" != yes; then
+if test "$cross_compiling" = maybe && test "x$build" != "x$host"; then
+  cross_compiling=yes
+elif test "$cross_compiling" != yes; then
   { { ac_try="$ac_link"
 case "(($ac_try" in
   *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
@@ -9902,13 +9906,20 @@ if test "$GCC" = yes; then
     ;;
   esac
   # Ok, now we have the path, separated by spaces, we can step through it
-  # and add multilib dir if necessary.
+  # and add multilib dir if necessary...
   lt_tmp_lt_search_path_spec=
-  lt_multi_os_dir=`$CC $CPPFLAGS $CFLAGS $LDFLAGS -print-multi-os-directory 2>/dev/null`
+  lt_multi_os_dir=/`$CC $CPPFLAGS $CFLAGS $LDFLAGS -print-multi-os-directory 2>/dev/null`
+  # ...but if some path already ends with the multilib dir we assume
+  # that all is fine and trust -print-search-dirs as is (GCC 4.2 or newer).
+  case "$lt_multi_os_dir; $lt_search_path_spec " in
+  "/; "* | "/.; "* | "/./; "* | *"$lt_multi_os_dir "* | *"$lt_multi_os_dir/ "*)
+    lt_multi_os_dir=
+    ;;
+  esac
   for lt_sys_path in $lt_search_path_spec; do
-    if test -d "$lt_sys_path/$lt_multi_os_dir"; then
-      lt_tmp_lt_search_path_spec="$lt_tmp_lt_search_path_spec $lt_sys_path/$lt_multi_os_dir"
-    else
+    if test -d "$lt_sys_path$lt_multi_os_dir"; then
+      lt_tmp_lt_search_path_spec="$lt_tmp_lt_search_path_spec $lt_sys_path$lt_multi_os_dir"
+    elif test -n "$lt_multi_os_dir"; then
       test -d "$lt_sys_path" && \
 	lt_tmp_lt_search_path_spec="$lt_tmp_lt_search_path_spec $lt_sys_path"
     fi
@@ -15718,7 +15729,7 @@ find_lib()
     else
         host_lib_path="/usr/$base_libdir /usr/local/$base_libdir"
     fi
-    for path in $gcc_bin_path $gcc_lib_path $env_lib_path $host_lib_path; do
+    for path in $env_lib_path $gcc_bin_path $gcc_lib_path $host_lib_path; do
         lib=`ls -- $path/$1 2>/dev/null | sed -e '/\.so\..*\./d' -e 's,.*/,,' | sort | tail -1`
         if test x$lib != x; then
             echo $lib
@@ -16225,26 +16236,26 @@ $as_echo_n "checking for alloca... " >&6; }
 if ${ac_cv_func_alloca_works+:} false; then :
   $as_echo_n "(cached) " >&6
 else
+  if test $ac_cv_working_alloca_h = yes; then
+  ac_cv_func_alloca_works=yes
+else
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
-#ifdef __GNUC__
-# define alloca __builtin_alloca
-#else
-# ifdef _MSC_VER
+#if defined STDC_HEADERS || defined HAVE_STDLIB_H
+# include <stdlib.h>
+#endif
+#include <stddef.h>
+#ifndef alloca
+# ifdef __GNUC__
+#  define alloca __builtin_alloca
+# elif defined _MSC_VER
 #  include <malloc.h>
 #  define alloca _alloca
 # else
-#  ifdef HAVE_ALLOCA_H
-#   include <alloca.h>
-#  else
-#   ifdef _AIX
- #pragma alloca
-#   else
-#    ifndef alloca /* predefined by HP cc +Olibcalls */
-void *alloca (size_t);
-#    endif
-#   endif
+#  ifdef  __cplusplus
+extern "C"
 #  endif
+void *alloca (size_t);
 # endif
 #endif
 
@@ -16261,9 +16272,12 @@ if ac_fn_c_try_link "$LINENO"; then :
   ac_cv_func_alloca_works=yes
 else
   ac_cv_func_alloca_works=no
+
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
+fi
+
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_func_alloca_works" >&5
 $as_echo "$ac_cv_func_alloca_works" >&6; }
@@ -19003,8 +19017,34 @@ else
   $as_echo_n "(cached) " >&6
 else
   # One or both of the vars are not set, and there is no cached value.
-ac_x_includes=no ac_x_libraries=no
-rm -f -r conftest.dir
+ac_x_includes=no
+ac_x_libraries=no
+# Do we need to do anything special at all?
+ac_save_LIBS=$LIBS
+LIBS="-lX11 $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <X11/Xlib.h>
+int
+main ()
+{
+XrmInitialize ()
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  # We can compile and link X programs with no special options.
+  ac_x_includes=
+  ac_x_libraries=
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS="$ac_save_LIBS"
+# If that didn't work, only try xmkmf and filesystem searches
+# for native compilation.
+if test x"$ac_x_includes" = xno && test "$cross_compiling" = no; then :
+  rm -f -r conftest.dir
 if mkdir conftest.dir; then
   cd conftest.dir
   cat >Imakefile <<'_ACEOF'
@@ -19043,7 +19083,7 @@ _ACEOF
   rm -f -r conftest.dir
 fi
 
-# Standard set of common directories for X headers.
+  # Standard set of common directories for X headers.
 # Check X11 before X11Rn because it is often a symlink to the current release.
 ac_x_header_dirs='
 /usr/X11/include
@@ -19069,6 +19109,8 @@ ac_x_header_dirs='
 /usr/local/include/X11R6
 /usr/local/include/X11R5
 /usr/local/include/X11R4
+
+/opt/X11/include
 
 /usr/X386/include
 /usr/x386/include
@@ -19143,15 +19185,17 @@ rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 fi # $ac_x_libraries = no
 
+fi
+# Record the results.
 case $ac_x_includes,$ac_x_libraries in #(
-  no,* | *,no | *\'*)
+  no,* | *,no | *\'*) :
     # Didn't find X, or a directory has "'" in its name.
-    ac_cv_have_x="have_x=no";; #(
-  *)
+    ac_cv_have_x="have_x=no" ;; #(
+  *) :
     # Record where we found X for the cache.
     ac_cv_have_x="have_x=yes\
 	ac_x_includes='$ac_x_includes'\
-	ac_x_libraries='$ac_x_libraries'"
+	ac_x_libraries='$ac_x_libraries'" ;;
 esac
 fi
 ;; #(
@@ -21503,7 +21547,6 @@ $as_echo "#define SDL_THREAD_PTHREAD 1" >>confdefs.h
             EXTRA_CFLAGS="$EXTRA_CFLAGS $pthread_cflags"
             EXTRA_LDFLAGS="$EXTRA_LDFLAGS $pthread_lib"
             SDL_CFLAGS="$SDL_CFLAGS $pthread_cflags"
-            SDL_LIBS="$SDL_LIBS $pthread_lib"
 
             # Save the original compiler flags and libraries
             ac_save_cflags="$CFLAGS"; ac_save_libs="$LIBS"
@@ -21518,6 +21561,7 @@ $as_echo_n "checking for recursive mutexes... " >&6; }
                 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
+                  #define _GNU_SOURCE 1
                   #include <pthread.h>
 
 int
@@ -21531,7 +21575,7 @@ main ()
   return 0;
 }
 _ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
+if ac_fn_c_try_link "$LINENO"; then :
 
                 has_recursive_mutexes=yes
 
@@ -21539,12 +21583,14 @@ $as_echo "#define SDL_THREAD_PTHREAD_RECURSIVE_MUTEX 1" >>confdefs.h
 
 
 fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
             fi
             if test x$has_recursive_mutexes = xno; then
                 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
+                  #define _GNU_SOURCE 1
                   #include <pthread.h>
 
 int
@@ -21558,7 +21604,7 @@ main ()
   return 0;
 }
 _ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
+if ac_fn_c_try_link "$LINENO"; then :
 
                 has_recursive_mutexes=yes
 
@@ -21566,7 +21612,8 @@ $as_echo "#define SDL_THREAD_PTHREAD_RECURSIVE_MUTEX_NP 1" >>confdefs.h
 
 
 fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
             fi
             { $as_echo "$as_me:${as_lineno-$LINENO}: result: $has_recursive_mutexes" >&5
 $as_echo "$has_recursive_mutexes" >&6; }
@@ -22579,8 +22626,12 @@ case "$host" in
         CheckOpenGLESX11
         CheckLibUDev
         CheckDBus
-        CheckInputEvents
-        CheckInputKD
+        case $ARCH in
+          linux)
+              CheckInputEvents
+              CheckInputKD
+          ;;
+        esac
         CheckTslib
         CheckUSBHID
         CheckPTHREAD
@@ -22948,6 +22999,7 @@ $as_echo "#define SDL_FILESYSTEM_HAIKU 1" >>confdefs.h
         # Set up files for the audio library
         if test x$enable_audio = xyes; then
             SOURCES="$SOURCES $srcdir/src/audio/coreaudio/*.c"
+            SUMMARY_audio="${SUMMARY_audio} coreaudio"
             have_audio=yes
         fi
         # Set up files for the joystick library
@@ -23019,6 +23071,7 @@ $as_echo "#define SDL_FILESYSTEM_HAIKU 1" >>confdefs.h
 $as_echo "#define SDL_AUDIO_DRIVER_COREAUDIO 1" >>confdefs.h
 
             SOURCES="$SOURCES $srcdir/src/audio/coreaudio/*.c"
+            SUMMARY_audio="${SUMMARY_audio} coreaudio"
             have_audio=yes
         fi
         # Set up files for the joystick library
