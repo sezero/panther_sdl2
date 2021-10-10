@@ -85,7 +85,7 @@ SDL_AtomicTryLock(SDL_SpinLock *lock)
 #elif (defined(__MACOSX__) && (MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_4)) || defined(__IPHONEOS__)
     /* Maybe used for PowerPC, but the Intel asm or gcc atomics are favored. */
     return OSAtomicCompareAndSwap32Barrier(0, 1, lock);
-	
+
 #elif HAVE_PTHREAD_SPINLOCK
     /* pthread instructions */
     return (pthread_spin_trylock(lock) == 0);
